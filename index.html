@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام الجمعية العمومية — جمعية البر بمحافظة السليل</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/brypt.min.js"></script>
+<style>
+:root {
+  --bg: #F4F5F7;
+  --surface: #FFFFFF;
+  --surface2: #F0F2F5;
+  --border: #E2E5EB;
+  --text: #1A1D23;
+  --text2: #4B5163;
+  --text3: #8B92A5;
+  --green: #0B7A5E;
+  --green2: #E6F5F1;
+  --blue: #1A56DB;
+  --blue2: #EBF2FF;
+  --red: #C81E1E;
+  --red2: #FEF2F2;
+  --amber: #92400E;
+  --amber2: #FFFBEB;
+  --purple: #5521B5;
+  --purple2: #F0EBFF;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ===== SCREENS ===== */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ===== LOGIN ===== */
+#screen-login {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0B3D2E 0%, #0B7A5E 50%, #1A56DB 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+#screen-login.active { display: flex; }
+
+.login-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-logo .logo-icon {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, #0B7A5E, #1A56DB);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 14px;
+}
+
+.login-logo h1 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.login-logo p {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color .2s, box-shadow .2s;
+  direction: rtl;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(11,122,94,.12);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all .15s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.btn-primary:hover { background: #096b52; }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text2);
+  border-color: var(--border);
+}
+.btn-secondary:hover { background: var(--border); }
+
+.btn-danger {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+}
+
+.btn-blue {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+
+.error-msg {
+  background: var(--red2);
+  color: var(--red);
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  display: none;
+}
+.error-msg.show { display: block; }
+
+/* ===== MAIN LAYOUT ===== */
+#screen-main.active { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 240px;
+  background: #0B2D22;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.sidebar-logo h2 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.4;
+}
+
+.sidebar-logo p {
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  overflow-y: auto;
+}
+
+.nav-section {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,.3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 12px 8px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,.65);
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: right;
+}
+
+.nav-item:hover { background: rgba(255,255,255,.08); color: white; }
+.nav-item.active { background: rgba(11,122,94,.3); color: #5DE3C0; }
+.nav-item .icon { font-size: 16px; flex-shrink: 0; }
+
+.sidebar-footer {
+  padding: 12px 8px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.06);
+  margin-bottom: 8px;
+}
+
+.user-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0B7A5E, #1A56DB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  color: white;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 12px;
+  color: rgba(255,255,255,.8);
+  font-weight: 500;
+}
+
+.user-role {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  flex: 1;
+  margin-right: 240px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar h1 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.page-content {
+  flex: 1;
+  padding: 24px;
+}
+
+/* ===== STATS CARDS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.stat-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.stat-value {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text3);
+}
+
+/* ===== TABLE ===== */
+.table-wrap {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.table-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.table-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.search-input {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  width: 220px;
+  direction: rtl;
+}
+.search-input:focus { outline: none; border-color: var(--green); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: var(--surface2);
+  padding: 10px 16px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #FAFBFC; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-green { background: var(--green2); color: var(--green); }
+.badge-red { background: var(--red2); color: var(--red); }
+.badge-amber { background: var(--amber2); color: var(--amber); }
+.badge-blue { background: var(--blue2); color: var(--blue); }
+.badge-purple { background: var(--purple2); color: var(--purple); }
+.badge-gray { background: var(--surface2); color: var(--text3); }
+
+/* ===== MODAL ===== */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  display: none;
+}
+.modal-backdrop.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-head h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--surface2);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: var(--border); }
+
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ===== ALERT ===== */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.alert-success { background: var(--green2); color: var(--green); border: 1px solid #6EE7D0; }
+.alert-error { background: var(--red2); color: var(--red); border: 1px solid #FCA5A5; }
+.alert-info { background: var(--blue2); color: var(--blue); border: 1px solid #93C5FD; }
+.alert-warning { background: var(--amber2); color: var(--amber); border: 1px solid #FCD34D; }
+
+/* ===== TOAST ===== */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: slideInLeft .3s ease;
+  cursor: pointer;
+  min-width: 240px;
+}
+.toast-success { background: var(--green); color: white; }
+.toast-error { background: var(--red); color: white; }
+.toast-info { background: var(--blue); color: white; }
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ===== LOADING ===== */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(255,255,255,.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9000;
+  display: none;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text3);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state h3 { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(100%); transition: transform .3s; }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-right: 0; }
+  .topbar { padding: 12px 16px; }
+  .page-content { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .search-input { width: 100%; }
+  .table-wrap { overflow-x: auto; }
+  .modal { max-width: 100%; margin: 0; border-radius: 20px 20px 0 0; align-self: flex-end; }
+}
+
+/* ===== MEMBER CARD (voting) ===== */
+#screen-vote.active { display: block; }
+
+.vote-screen {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0B2D22 0%, #0B7A5E 100%);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vote-header {
+  text-align: center;
+  margin-bottom: 32px;
+  color: white;
+}
+
+.vote-header h1 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.vote-header p { font-size: 13px; opacity: .7; }
+
+.vote-card {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.vote-card-head {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vote-step-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.vote-card-body { padding: 24px; }
+
+.candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.candidate-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+
+.candidate-card:hover { border-color: var(--green); background: var(--green2); }
+
+.candidate-card.selected {
+  border-color: var(--green);
+  background: var(--green2);
+}
+
+.candidate-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 22px; height: 22px;
+  background: var(--green);
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+
+.candidate-photo {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  margin: 0 auto 10px;
+  display: block;
+  background: var(--surface2);
+  font-size: 28px;
+  line-height: 64px;
+  text-align: center;
+}
+
+.candidate-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.candidate-id {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ===== RESULTS ===== */
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  background: var(--surface2);
+}
+
+.result-rank {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.result-rank.council { background: var(--green); color: white; }
+.result-rank.reserve { background: var(--amber2); color: var(--amber); }
+
+.result-name { flex: 1; font-size: 14px; font-weight: 500; }
+.result-votes {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+.result-votes span { font-size: 11px; font-weight: 400; color: var(--text3); margin-right: 3px; }
+
+/* ===== ATTENDANCE ===== */
+.attendance-counter {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.att-count {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.att-count .num {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.att-count .lbl { font-size: 12px; color: var(--text3); }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.tab.active { background: white; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- ===== SCREEN: LOGIN ===== -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏛️</div>
+      <h1>جمعية البر الخيرية</h1>
+      <p>بمحافظة السليل — نظام الجمعية العمومية</p>
+    </div>
+    <div id="login-error" class="error-msg"></div>
+    <div class="form-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="login-username" placeholder="أدخل اسم المستخدم" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="login-password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">دخول</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: MAIN ===== -->
+<div id="screen-main" class="screen">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h2>🏛️ جمعية البر الخيرية</h2>
+      <p>نظام الجمعية العمومية</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">الرئيسية</div>
+      <button class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
+        <span class="icon">📊</span> لوحة التحكم
+      </button>
+
+      <div class="nav-section">الأعضاء</div>
+      <button class="nav-item" onclick="showPage('members')" data-page="members">
+        <span class="icon">👥</span> إدارة الأعضاء
+      </button>
+      <button class="nav-item" onclick="showPage('subscriptions')" data-page="subscriptions">
+        <span class="icon">💳</span> الاشتراكات
+      </button>
+
+      <div class="nav-section">الانتخابات</div>
+      <button class="nav-item" onclick="showPage('session')" data-page="session">
+        <span class="icon">🗳️</span> إدارة الجلسة
+      </button>
+      <button class="nav-item" onclick="showPage('attendance')" data-page="attendance">
+        <span class="icon">📋</span> كشف الحضور
+      </button>
+      <button class="nav-item" onclick="showPage('candidates')" data-page="candidates">
+        <span class="icon">🏆</span> المرشحون
+      </button>
+      <button class="nav-item" onclick="showPage('results')" data-page="results">
+        <span class="icon">📈</span> النتائج
+      </button>
+
+      <div class="nav-section">النظام</div>
+      <button class="nav-item" onclick="showPage('committee')" data-page="committee">
+        <span class="icon">🔐</span> مستخدمو اللجنة
+      </button>
+      <button class="nav-item" onclick="showPage('reports')" data-page="reports">
+        <span class="icon">📄</span> التقارير
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">م</div>
+        <div>
+          <div class="user-name" id="user-name">المستخدم</div>
+          <div class="user-role" id="user-role">عضو لجنة</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" style="width:100%" onclick="doLogout()">🚪 تسجيل خروج</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <h1 id="page-title">لوحة التحكم</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary btn-sm" onclick="toggleSidebar()" id="menu-btn" style="display:none">☰</button>
+        <span id="session-status-badge"></span>
+      </div>
+    </div>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: VOTE (للأعضاء) ===== -->
+<div id="screen-vote" class="screen">
+  <div class="vote-screen">
+    <div class="vote-header">
+      <h1>🗳️ التصويت الإلكتروني</h1>
+      <p id="vote-session-title">جمعية البر الخيرية بمحافظة السليل</p>
+    </div>
+    <div class="vote-card" id="vote-card-content"></div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<!-- Modal: إضافة/تعديل عضو -->
+<div class="modal-backdrop" id="modal-member">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-member-title">إضافة عضو جديد</h3>
+      <button class="modal-close" onclick="closeModal('modal-member')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="member-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>الاسم الكامل *</label>
+          <input type="text" id="m-name" placeholder="الاسم الرباعي">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>رقم الهوية الوطنية *</label>
+          <input type="text" id="m-national-id" placeholder="10 أرقام" maxlength="10" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label>رقم الجوال</label>
+          <input type="text" id="m-phone" placeholder="05xxxxxxxx" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label>تاريخ الميلاد (ميلادي)</label>
+          <input type="date" id="m-dob-miladi">
+        </div>
+        <div class="form-group">
+          <label>تاريخ الميلاد (هجري)</label>
+          <input type="text" id="m-dob-hijri" placeholder="مثال: 1400/01/01">
+        </div>
+        <div class="form-group">
+          <label>تاريخ الانضمام</label>
+          <input type="date" id="m-join-date">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>الحالة</label>
+          <select id="m-status">
+            <option value="true">فعال</option>
+            <option value="false">غير فعال</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>ملاحظات</label>
+          <textarea id="m-notes" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-member')">إلغاء</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveMember()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إضافة اشتراك -->
+<div class="modal-backdrop" id="modal-subscription">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>تسجيل اشتراك</h3>
+      <button class="modal-close" onclick="closeModal('modal-subscription')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sub-member-id">
+      <div class="form-group">
+        <label>اسم العضو</label>
+        <input type="text" id="sub-member-name" disabled>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label>السنة *</label>
+          <input type="number" id="sub-year" min="2020" max="2050">
+        </div>
+        <div class="form-group">
+          <label>المبلغ (ريال) *</label>
+          <input type="number" id="sub-amount" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>تاريخ السداد *</label>
+          <input type="date" id="sub-date">
+        </div>
+        <div class="form-group">
+          <label>طريقة الدفع</label>
+          <select id="sub-method">
+            <option value="cash">نقدي</option>
+            <option value="transfer">تحويل بنكي</option>
+            <option value="other">أخرى</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>رقم الإيصال</label>
+          <input type="text" id="sub-receipt" placeholder="اختياري">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-subscription')">إلغاء</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveSubscription()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: جلسة انتخاب -->
+<div class="modal-backdrop" id="modal-session">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إنشاء جلسة انتخاب جديدة</h3>
+      <button class="modal-close" onclick="closeModal('modal-session')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>عنوان الجلسة *</label>
+        <input type="text" id="ses-title" placeholder="مثال: انتخابات مجلس الإدارة 2025">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label>عدد أعضاء المجلس *</label>
+          <select id="ses-size">
+            <option value="5">5 أعضاء</option>
+            <option value="7">7 أعضاء</option>
+            <option value="9">9 أعضاء</option>
+            <option value="11">11 عضو</option>
+            <option value="13">13 عضو</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>تاريخ الجلسة *</label>
+          <input type="date" id="ses-date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-session')">إلغاء</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveSession()">🗳️ إنشاء الجلسة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إضافة مرشح -->
+<div class="modal-backdrop" id="modal-candidate">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إضافة مرشح</h3>
+      <button class="modal-close" onclick="closeModal('modal-candidate')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>رقم الهوية الوطنية *</label>
+        <input type="text" id="cand-national-id" placeholder="أدخل رقم هوية العضو" dir="ltr" onblur="lookupCandidateMember()">
+      </div>
+      <div id="cand-member-info" style="display:none" class="alert alert-info">
+        <span id="cand-member-name-display"></span>
+      </div>
+      <div class="form-group">
+        <label>رابط الصورة (اختياري)</label>
+        <input type="url" id="cand-photo" placeholder="https://..." dir="ltr">
+      </div>
+      <div class="form-group">
+        <label>نبذة عن المرشح (اختياري)</label>
+        <textarea id="cand-bio" rows="3" placeholder="مؤهلاته وخبراته..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-candidate')">إلغاء</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveCandidate()">➕ إضافة المرشح</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: إدخال يدوي للأصوات -->
+<div class="modal-backdrop" id="modal-manual-vote">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إدخال يدوي للأصوات — رئيس اللجنة</h3>
+      <button class="modal-close" onclick="closeModal('modal-manual-vote')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-warning">⚠️ هذا الإجراء خاص بالحالات الاستثنائية فقط ويُسجَّل باسمك</div>
+      <div class="form-group">
+        <label>رقم هوية الناخب *</label>
+        <input type="text" id="mv-voter-id" placeholder="رقم الهوية" dir="ltr" onblur="lookupManualVoter()">
+      </div>
+      <div id="mv-voter-info" style="display:none" class="alert alert-info mb-2">
+        <span id="mv-voter-name"></span>
+      </div>
+      <div class="form-group">
+        <label>اختر المرشحين (بحد أقصى عدد المجلس)</label>
+        <div id="mv-candidates-list" style="display:grid;gap:6px;margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-manual-vote')">إلغاء</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveManualVotes()">💾 تسجيل الأصوات</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// SUPABASE CONFIG
+// =============================================
+const SUPABASE_URL = 'https://txfvdiosuvrjaguypjiq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_2kUExFjg4jR3x59csev_Xg_phppuffC';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================================
+// STATE
+// =============================================
+let currentUser = null;
+let currentSession = null;
+let currentPage = 'dashboard';
+
+// =============================================
+// INIT
+// =============================================
+window.onload = async () => {
+  const saved = localStorage.getItem('election_user');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    await initApp();
+  }
+};
+
+// =============================================
+// AUTH
+// =============================================
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+
+  if (!username || !password) {
+    errEl.textContent = 'الرجاء إدخال اسم المستخدم وكلمة المرور';
+    errEl.classList.add('show');
+    return;
+  }
+
+  showLoading(true);
+  try {
+    const { data, error } = await db
+      .from('committee_users')
+      .select('*')
+      .eq('username', username)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+      errEl.classList.add('show');
+      return;
+    }
+
+    // simple password check (in production use bcrypt)
+    if (data.password_hash !== password) {
+      errEl.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+      errEl.classList.add('show');
+      return;
+    }
+
+    currentUser = data;
+    localStorage.setItem('election_user', JSON.stringify(data));
+    await initApp();
+  } catch (e) {
+    errEl.textContent = 'خطأ في الاتصال بقاعدة البيانات';
+    errEl.classList.add('show');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  currentSession = null;
+  localStorage.removeItem('election_user');
+  showScreen('screen-login');
+}
+
+async function initApp() {
+  document.getElementById('user-name').textContent = currentUser.full_name;
+  document.getElementById('user-role').textContent = currentUser.role === 'president' ? 'رئيس اللجنة' : 'عضو لجنة';
+  document.getElementById('user-avatar').textContent = currentUser.full_name.charAt(0);
+
+  // Hide manual vote if not president
+  showScreen('screen-main');
+  await loadCurrentSession();
+  showPage('dashboard');
+}
+
+// =============================================
+// NAVIGATION
+// =============================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+
+  const titles = {
+    dashboard: 'لوحة التحكم',
+    members: 'إدارة الأعضاء',
+    subscriptions: 'الاشتراكات',
+    session: 'إدارة الجلسة الانتخابية',
+    attendance: 'كشف الحضور',
+    candidates: 'المرشحون',
+    results: 'نتائج التصويت',
+    committee: 'مستخدمو اللجنة',
+    reports: 'التقارير'
+  };
+  document.getElementById('page-title').textContent = titles[page] || page;
+
+  const renderers = {
+    dashboard: renderDashboard,
+    members: renderMembers,
+    subscriptions: renderSubscriptions,
+    session: renderSession,
+    attendance: renderAttendance,
+    candidates: renderCandidates,
+    results: renderResults,
+    committee: renderCommittee,
+    reports: renderReports
+  };
+
+  if (renderers[page]) renderers[page]();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// =============================================
+// LOAD CURRENT SESSION
+// =============================================
+async function loadCurrentSession() {
+  const { data } = await db
+    .from('election_sessions')
+    .select('*')
+    .neq('status', 'closed')
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  currentSession = data && data.length > 0 ? data[0] : null;
+  updateSessionBadge();
+}
+
+function updateSessionBadge() {
+  const badge = document.getElementById('session-status-badge');
+  if (!currentSession) { badge.innerHTML = ''; return; }
+  const labels = {
+    preparing: ['⚙️ تحضير', 'badge-gray'],
+    attendance: ['📋 تسجيل الحضور', 'badge-blue'],
+    voting: ['🗳️ التصويت مفتوح', 'badge-green'],
+    closed: ['✅ مغلق', 'badge-gray']
+  };
+  const [label, cls] = labels[currentSession.status] || ['', ''];
+  badge.innerHTML = `<span class="badge ${cls}">${label}</span>`;
+}
+
+// =============================================
+// DASHBOARD
+// =============================================
+async function renderDashboard() {
+  showLoading(true);
+  const [membersRes, subsRes, sessionRes] = await Promise.all([
+    db.from('members').select('id, is_active'),
+    db.from('subscriptions').select('id, year').eq('year', new Date().getFullYear()),
+    db.from('election_sessions').select('*').order('created_at', { ascending: false }).limit(1)
+  ]);
+
+  const totalMembers = membersRes.data?.length || 0;
+  const activeMembers = membersRes.data?.filter(m => m.is_active).length || 0;
+  const paidThisYear = subsRes.data?.length || 0;
+  const latestSession = sessionRes.data?.[0];
+
+  let attendanceCount = 0;
+  if (latestSession) {
+    const { count } = await db.from('attendance').select('*', { count: 'exact', head: true }).eq('session_id', latestSession.id);
+    attendanceCount = count || 0;
+  }
+
+  showLoading(false);
+  document.getElementById('page-content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#E6F5F1">👥</div>
+        <div class="stat-value">${totalMembers}</div>
+        <div class="stat-label">إجمالي الأعضاء</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#EBF2FF">✅</div>
+        <div class="stat-value">${activeMembers}</div>
+        <div class="stat-label">الأعضاء الفعالون</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#FFFBEB">💳</div>
+        <div class="stat-value">${paidThisYear}</div>
+        <div class="stat-label">المسددون ${new Date().getFullYear()}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#F0EBFF">📋</div>
+        <div class="stat-value">${attendanceCount}</div>
+        <div class="stat-label">حضور آخر جلسة</div>
+      </div>
+    </div>
+
+    ${latestSession ? `
+    <div class="table-wrap" style="margin-bottom:20px">
+      <div class="table-header">
+        <div class="table-title">🗳️ الجلسة الحالية: ${latestSession.title}</div>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('session')">إدارة الجلسة</button>
+      </div>
+      <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+        <div><div class="stat-label">الحالة</div>
+          <span class="badge ${latestSession.status==='voting'?'badge-green':latestSession.status==='attendance'?'badge-blue':'badge-gray'}" style="margin-top:6px">
+            ${latestSession.status==='preparing'?'تحضير':latestSession.status==='attendance'?'تسجيل الحضور':latestSession.status==='voting'?'التصويت مفتوح':'مغلق'}
+          </span>
+        </div>
+        <div><div class="stat-label">حجم المجلس</div><div style="font-weight:700;margin-top:6px">${latestSession.council_size} أعضاء</div></div>
+        <div><div class="stat-label">تاريخ الجلسة</div><div style="font-weight:700;margin-top:6px">${latestSession.session_date}</div></div>
+        <div><div class="stat-label">الحاضرون</div><div style="font-weight:700;margin-top:6px;color:var(--green)">${attendanceCount}</div></div>
+      </div>
+    </div>` : `
+    <div class="table-wrap">
+      <div class="empty-state">
+        <div class="icon">🗳️</div>
+        <h3>لا توجد جلسة انتخابية حالية</h3>
+        <p style="margin-bottom:16px">أنشئ جلسة جديدة للبدء</p>
+        <button class="btn btn-primary" style="width:auto;margin:0 auto" onclick="showPage('session')">إنشاء جلسة</button>
+      </div>
+    </div>`}
+  `;
+}
+
+// =============================================
+// MEMBERS PAGE
+// =============================================
+async function renderMembers(search = '') {
+  showLoading(true);
+  let query = db.from('members').select('*, subscriptions(year)').order('full_name');
+  if (search) query = query.ilike('full_name', `%${search}%`);
+  const { data: members } = await query;
+  showLoading(false);
+
+  const currentYear = new Date().getFullYear();
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">الأعضاء (${members?.length || 0})</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input class="search-input" placeholder="بحث بالاسم..." oninput="renderMembers(this.value)" value="${search}">
+          <button class="btn btn-primary btn-sm" onclick="openMemberModal()">➕ إضافة عضو</button>
+          <button class="btn btn-secondary btn-sm" onclick="importMembersCSV()">📂 رفع Excel</button>
+        </div>
+      </div>
+      ${members?.length ? `
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>#</th>
+          <th>الاسم</th>
+          <th>رقم الهوية</th>
+          <th>الجوال</th>
+          <th>تاريخ الانضمام</th>
+          <th>حالة العضوية</th>
+          <th>سداد ${currentYear}</th>
+          <th>إجراءات</th>
+        </tr></thead>
+        <tbody>
+          ${members.map((m, i) => {
+            const paidThisYear = m.subscriptions?.some(s => s.year === currentYear);
+            const isActive = m.is_active && paidThisYear;
+            return `<tr>
+              <td>${i + 1}</td>
+              <td><strong>${m.full_name}</strong></td>
+              <td dir="ltr">${m.national_id}</td>
+              <td dir="ltr">${m.phone || '—'}</td>
+              <td>${m.join_date || '—'}</td>
+              <td><span class="badge ${m.is_active ? 'badge-green' : 'badge-red'}">${m.is_active ? 'فعال' : 'غير فعال'}</span></td>
+              <td><span class="badge ${paidThisYear ? 'badge-green' : 'badge-amber'}">${paidThisYear ? 'مسدد' : 'غير مسدد'}</span></td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="openMemberModal('${m.id}')">✏️</button>
+                <button class="btn btn-secondary btn-sm" onclick="openSubModal('${m.id}','${m.full_name}')">💳</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      </div>` : `<div class="empty-state"><div class="icon">👥</div><h3>لا يوجد أعضاء</h3><p>أضف أعضاء جدداً أو ارفع ملف Excel</p></div>`}
+    </div>
+  `;
+}
+
+// =============================================
+// MEMBER MODAL
+// =============================================
+function openMemberModal(id = null) {
+  document.getElementById('modal-member-title').textContent = id ? 'تعديل بيانات العضو' : 'إضافة عضو جديد';
+  document.getElementById('member-id').value = id || '';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-national-id').value = '';
+  document.getElementById('m-phone').value = '';
+  document.getElementById('m-dob-miladi').value = '';
+  document.getElementById('m-dob-hijri').value = '';
+  document.getElementById('m-join-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('m-notes').value = '';
+  document.getElementById('m-status').value = 'true';
+
+  if (id) {
+    db.from('members').select('*').eq('id', id).single().then(({ data }) => {
+      if (data) {
+        document.getElementById('m-name').value = data.full_name;
+        document.getElementById('m-national-id').value = data.national_id;
+        document.getElementById('m-phone').value = data.phone || '';
+        document.getElementById('m-dob-miladi').value = data.dob_miladi || '';
+        document.getElementById('m-dob-hijri').value = data.dob_hijri || '';
+        document.getElementById('m-join-date').value = data.join_date || '';
+        document.getElementById('m-notes').value = data.notes || '';
+        document.getElementById('m-status').value = data.is_active ? 'true' : 'false';
+      }
+    });
+  }
+  openModal('modal-member');
+}
+
+async function saveMember() {
+  const id = document.getElementById('member-id').value;
+  const data = {
+    full_name: document.getElementById('m-name').value.trim(),
+    national_id: document.getElementById('m-national-id').value.trim(),
+    phone: document.getElementById('m-phone').value.trim(),
+    dob_miladi: document.getElementById('m-dob-miladi').value || null,
+    dob_hijri: document.getElementById('m-dob-hijri').value.trim(),
+    join_date: document.getElementById('m-join-date').value || null,
+    notes: document.getElementById('m-notes').value.trim(),
+    is_active: document.getElementById('m-status').value === 'true',
+    updated_at: new Date().toISOString()
+  };
+
+  if (!data.full_name || !data.national_id) {
+    toast('الاسم ورقم الهوية مطلوبان', 'error'); return;
+  }
+
+  showLoading(true);
+  const { error } = id
+    ? await db.from('members').update(data).eq('id', id)
+    : await db.from('members').insert(data);
+  showLoading(false);
+
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  toast(id ? 'تم تحديث بيانات العضو' : 'تم إضافة العضو بنجاح', 'success');
+  closeModal('modal-member');
+  renderMembers();
+}
+
+// =============================================
+// SUBSCRIPTIONS
+// =============================================
+async function renderSubscriptions(search = '') {
+  showLoading(true);
+  const { data: members } = await db.from('members').select('id, full_name, national_id').ilike('full_name', `%${search}%`).order('full_name');
+  const currentYear = new Date().getFullYear();
+  const { data: subs } = await db.from('subscriptions').select('*').in('year', [currentYear, currentYear-1, currentYear-2]);
+  showLoading(false);
+
+  const subMap = {};
+  subs?.forEach(s => { if (!subMap[s.member_id]) subMap[s.member_id] = {}; subMap[s.member_id][s.year] = s; });
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">الاشتراكات السنوية</div>
+        <input class="search-input" placeholder="بحث بالاسم..." oninput="renderSubscriptions(this.value)" value="${search}">
+      </div>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>#</th><th>الاسم</th><th>رقم الهوية</th>
+          <th>${currentYear-2}</th><th>${currentYear-1}</th><th>${currentYear}</th>
+          <th>إجراءات</th>
+        </tr></thead>
+        <tbody>
+          ${members?.map((m, i) => {
+            const y0 = subMap[m.id]?.[currentYear-2];
+            const y1 = subMap[m.id]?.[currentYear-1];
+            const y2 = subMap[m.id]?.[currentYear];
+            return `<tr>
+              <td>${i+1}</td>
+              <td><strong>${m.full_name}</strong></td>
+              <td dir="ltr">${m.national_id}</td>
+              <td>${y0 ? `<span class="badge badge-green">✓ ${y0.amount} ر</span>` : `<span class="badge badge-gray">—</span>`}</td>
+              <td>${y1 ? `<span class="badge badge-green">✓ ${y1.amount} ر</span>` : `<span class="badge badge-gray">—</span>`}</td>
+              <td>${y2 ? `<span class="badge badge-green">✓ ${y2.amount} ر</span>` : `<span class="badge badge-amber">غير مسدد</span>`}</td>
+              <td><button class="btn btn-primary btn-sm" onclick="openSubModal('${m.id}','${m.full_name}')">+ تسجيل</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  `;
+}
+
+function openSubModal(memberId, memberName) {
+  document.getElementById('sub-member-id').value = memberId;
+  document.getElementById('sub-member-name').value = memberName;
+  document.getElementById('sub-year').value = new Date().getFullYear();
+  document.getElementById('sub-amount').value = '';
+  document.getElementById('sub-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sub-receipt').value = '';
+  openModal('modal-subscription');
+}
+
+async function saveSubscription() {
+  const memberId = document.getElementById('sub-member-id').value;
+  const year = parseInt(document.getElementById('sub-year').value);
+  const amount = parseFloat(document.getElementById('sub-amount').value);
+  const date = document.getElementById('sub-date').value;
+
+  if (!year || !amount || !date) { toast('الرجاء تعبئة الحقول المطلوبة', 'error'); return; }
+
+  showLoading(true);
+  const { error } = await db.from('subscriptions').upsert({
+    member_id: memberId,
+    year, amount,
+    paid_date: date,
+    payment_method: document.getElementById('sub-method').value,
+    receipt_number: document.getElementById('sub-receipt').value
+  }, { onConflict: 'member_id,year' });
+  showLoading(false);
+
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  toast('تم تسجيل الاشتراك بنجاح', 'success');
+  closeModal('modal-subscription');
+  if (currentPage === 'subscriptions') renderSubscriptions();
+  else renderMembers();
+}
+
+// =============================================
+// SESSION MANAGEMENT
+// =============================================
+async function renderSession() {
+  await loadCurrentSession();
+  const content = document.getElementById('page-content');
+
+  if (!currentSession) {
+    content.innerHTML = `
+      <div class="table-wrap">
+        <div class="empty-state">
+          <div class="icon">🗳️</div>
+          <h3>لا توجد جلسة انتخابية</h3>
+          <p style="margin-bottom:16px">أنشئ جلسة جديدة للبدء</p>
+          <button class="btn btn-primary" style="width:auto;margin:0 auto" onclick="openModal('modal-session')">➕ إنشاء جلسة جديدة</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('ses-date').value = new Date().toISOString().split('T')[0];
+    return;
+  }
+
+  const statusLabels = { preparing: 'تحضير', attendance: 'تسجيل الحضور', voting: 'التصويت مفتوح', closed: 'مغلق' };
+  const { count: attCount } = await db.from('attendance').select('*', { count: 'exact', head: true }).eq('session_id', currentSession.id);
+  const { count: candCount } = await db.from('candidates').select('*', { count: 'exact', head: true }).eq('session_id', currentSession.id);
+
+  const voteLink = `${location.origin}${location.pathname}?vote=1&session=${currentSession.id}`;
+
+  content.innerHTML = `
+    <div class="table-wrap" style="margin-bottom:16px">
+      <div class="table-header">
+        <div class="table-title">🗳️ ${currentSession.title}</div>
+        <span class="badge ${currentSession.status==='voting'?'badge-green':currentSession.status==='attendance'?'badge-blue':'badge-gray'}">${statusLabels[currentSession.status]}</span>
+      </div>
+      <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+        <div class="stat-card"><div class="stat-value">${currentSession.council_size}</div><div class="stat-label">حجم المجلس</div></div>
+        <div class="stat-card"><div class="stat-value">${attCount || 0}</div><div class="stat-label">الحاضرون</div></div>
+        <div class="stat-card"><div class="stat-value">${candCount || 0}</div><div class="stat-label">المرشحون</div></div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="padding:20px">
+      <div class="table-title" style="margin-bottom:16px">🔧 إدارة حالة الجلسة</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        ${currentSession.status === 'preparing' ? `
+          <div class="alert alert-info">الجلسة في مرحلة التحضير — أضف المرشحين ثم افتح تسجيل الحضور</div>
+          <button class="btn btn-blue" onclick="changeSessionStatus('attendance')">📋 فتح تسجيل الحضور</button>
+        ` : ''}
+
+        ${currentSession.status === 'attendance' ? `
+          <div class="alert alert-info">تسجيل الحضور مفتوح — انتظر اكتمال النصاب ثم افتح التصويت</div>
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;font-size:13px;word-break:break-all;direction:ltr">${voteLink}</div>
+          <button class="btn btn-primary" onclick="copyLink('${voteLink}')">📋 نسخ رابط التصويت</button>
+          <button class="btn btn-blue" onclick="changeSessionStatus('voting')">🗳️ فتح التصويت</button>
+          <button class="btn btn-secondary" onclick="changeSessionStatus('preparing')">↩️ رجوع للتحضير</button>
+        ` : ''}
+
+        ${currentSession.status === 'voting' ? `
+          <div class="alert alert-warning">⚡ التصويت مفتوح الآن — أرسل الرابط للأعضاء</div>
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;font-size:13px;word-break:break-all;direction:ltr">${voteLink}</div>
+          <button class="btn btn-primary" onclick="copyLink('${voteLink}')">📋 نسخ الرابط</button>
+          ${currentUser.role === 'president' ? `<button class="btn btn-blue" onclick="openModal('modal-manual-vote');loadManualVoteCandidates()">✏️ إدخال يدوي</button>` : ''}
+          <button class="btn btn-danger" onclick="confirmCloseVoting()">🔒 إغلاق التصويت وإعلان النتائج</button>
+        ` : ''}
+
+        ${currentSession.status === 'closed' ? `
+          <div class="alert alert-success">✅ الجلسة مغلقة — يمكنك عرض النتائج وطباعة المحضر</div>
+          <button class="btn btn-primary" onclick="showPage('results')">📈 عرض النتائج</button>
+          <button class="btn btn-secondary" onclick="showPage('reports')">📄 طباعة المحضر</button>
+        ` : ''}
+
+      </div>
+    </div>
+  `;
+}
+
+async function changeSessionStatus(newStatus) {
+  if (!currentSession) return;
+  const updates = { status: newStatus };
+  if (newStatus === 'attendance') updates.opened_at = new Date().toISOString();
+  if (newStatus === 'voting') updates.voting_opened_at = new Date().toISOString();
+  if (newStatus === 'closed') updates.closed_at = new Date().toISOString();
+
+  const { error } = await db.from('election_sessions').update(updates).eq('id', currentSession.id);
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  await loadCurrentSession();
+  toast('تم تحديث حالة الجلسة', 'success');
+  renderSession();
+}
+
+function confirmCloseVoting() {
+  if (confirm('هل أنت متأكد من إغلاق التصويت؟ لا يمكن التراجع عن هذا الإجراء.')) {
+    changeSessionStatus('closed');
+  }
+}
+
+async function saveSession() {
+  const title = document.getElementById('ses-title').value.trim();
+  const size = parseInt(document.getElementById('ses-size').value);
+  const date = document.getElementById('ses-date').value;
+  if (!title || !date) { toast('الرجاء تعبئة جميع الحقول', 'error'); return; }
+
+  showLoading(true);
+  const { error } = await db.from('election_sessions').insert({
+    title, council_size: size, session_date: date, status: 'preparing', created_by: currentUser.id
+  });
+  showLoading(false);
+
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  toast('تم إنشاء الجلسة بنجاح', 'success');
+  closeModal('modal-session');
+  await loadCurrentSession();
+  renderSession();
+}
+
+// =============================================
+// ATTENDANCE
+// =============================================
+async function renderAttendance() {
+  if (!currentSession) {
+    document.getElementById('page-content').innerHTML = `<div class="alert alert-warning">لا توجد جلسة نشطة</div>`;
+    return;
+  }
+
+  const { data: attendance } = await db.from('attendance')
+    .select('*, member:member_id(full_name,national_id), proxy_for:proxy_for_id(full_name,national_id)')
+    .eq('session_id', currentSession.id)
+    .order('recorded_at');
+
+  const originalCount = attendance?.filter(a => a.attendance_type === 'original').length || 0;
+  const proxyCount = attendance?.filter(a => a.attendance_type === 'proxy').length || 0;
+  const totalVotes = originalCount + proxyCount;
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="attendance-counter">
+      <div class="att-count">
+        <div class="num" style="color:var(--green)">${originalCount}</div>
+        <div class="lbl">حضور أصالة</div>
+      </div>
+      <div class="att-count">
+        <div class="num" style="color:var(--blue)">${proxyCount}</div>
+        <div class="lbl">حضور بالإنابة</div>
+      </div>
+      <div class="att-count">
+        <div class="num" style="color:var(--purple)">${totalVotes}</div>
+        <div class="lbl">إجمالي الأصوات</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">كشف الحضور — ${currentSession.title}</div>
+        ${currentSession.status === 'attendance' || currentSession.status === 'voting' ? `
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="openAttendanceForm('original')">➕ تسجيل حضور</button>
+            <button class="btn btn-secondary btn-sm" onclick="openAttendanceForm('proxy')">📜 تسجيل إنابة</button>
+          </div>` : ''}
+      </div>
+
+      ${attendance?.length ? `
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>#</th><th>الحاضر</th><th>رقم هويته</th>
+          <th>نوع الحضور</th><th>نيابة عن</th><th>الوقت</th>
+        </tr></thead>
+        <tbody>
+          ${attendance.map((a, i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td><strong>${a.member?.full_name}</strong></td>
+              <td dir="ltr">${a.member?.national_id}</td>
+              <td><span class="badge ${a.attendance_type==='original'?'badge-green':'badge-blue'}">${a.attendance_type==='original'?'أصالة':'بالإنابة'}</span></td>
+              <td>${a.proxy_for ? a.proxy_for.full_name : '—'}</td>
+              <td style="color:var(--text3);font-size:12px">${new Date(a.recorded_at).toLocaleTimeString('ar')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      </div>` : `<div class="empty-state"><div class="icon">📋</div><h3>لا يوجد حضور مسجل بعد</h3></div>`}
+    </div>
+
+    <!-- Attendance Form -->
+    <div id="attendance-form" style="display:none;margin-top:16px">
+      <div class="table-wrap" style="padding:20px">
+        <div class="table-title" style="margin-bottom:16px" id="att-form-title">تسجيل الحضور</div>
+        <div class="form-group">
+          <label>رقم هوية الحاضر *</label>
+          <input type="text" id="att-national-id" placeholder="أدخل رقم الهوية" dir="ltr" maxlength="10">
+        </div>
+        <div id="att-proxy-wrap" style="display:none">
+          <div class="form-group">
+            <label>رقم هوية المُنيب *</label>
+            <input type="text" id="att-proxy-id" placeholder="رقم هوية العضو الغائب" dir="ltr" maxlength="10">
+          </div>
+        </div>
+        <div id="att-result" style="margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" id="att-submit-btn" onclick="submitAttendance()">✅ تسجيل</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('attendance-form').style.display='none'">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let attendanceType = 'original';
+
+function openAttendanceForm(type) {
+  attendanceType = type;
+  document.getElementById('att-form-title').textContent = type === 'original' ? 'تسجيل حضور أصالة' : 'تسجيل حضور بالإنابة';
+  document.getElementById('att-national-id').value = '';
+  document.getElementById('att-proxy-id').value = '';
+  document.getElementById('att-result').innerHTML = '';
+  document.getElementById('att-proxy-wrap').style.display = type === 'proxy' ? 'block' : 'none';
+  document.getElementById('attendance-form').style.display = 'block';
+  document.getElementById('att-national-id').focus();
+}
+
+async function submitAttendance() {
+  const nationalId = document.getElementById('att-national-id').value.trim();
+  const proxyNationalId = attendanceType === 'proxy' ? document.getElementById('att-proxy-id').value.trim() : null;
+  const resultEl = document.getElementById('att-result');
+  resultEl.innerHTML = '';
+
+  if (!nationalId) { resultEl.innerHTML = `<div class="alert alert-error">أدخل رقم الهوية</div>`; return; }
+
+  showLoading(true);
+
+  // البحث عن الحاضر
+  const { data: member } = await db.from('members').select('*').eq('national_id', nationalId).single();
+  if (!member) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ رقم الهوية غير مسجل في النظام</div>`; return; }
+
+  // التحقق من الأهلية
+  const currentYear = new Date().getFullYear();
+  const { data: sub } = await db.from('subscriptions').select('*').eq('member_id', member.id).eq('year', currentYear).single();
+  if (!member.is_active || !sub) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ العضو غير مؤهل (غير فعال أو غير مسدد للسنة الحالية)</div>`; return; }
+
+  // التحقق من عدم التسجيل المسبق
+  const { data: existingAtt } = await db.from('attendance').select('*').eq('session_id', currentSession.id).eq('member_id', member.id).single();
+  if (existingAtt) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ تم تسجيل حضور هذا العضو مسبقاً</div>`; return; }
+
+  let proxyMember = null;
+  if (attendanceType === 'proxy') {
+    if (!proxyNationalId) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">أدخل رقم هوية المُنيب</div>`; return; }
+
+    // التحقق: الحاضر ليس مرشحاً
+    const { data: isCandidate } = await db.from('candidates').select('*').eq('session_id', currentSession.id).eq('member_id', member.id).single();
+    if (isCandidate) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ المرشح لا يجوز له الحضور بالإنابة مطلقاً</div>`; return; }
+
+    // التحقق: الحاضر ليس لديه إنابة مسبقة
+    const { data: existingProxy } = await db.from('attendance').select('*').eq('session_id', currentSession.id).eq('member_id', member.id).eq('attendance_type', 'proxy').single();
+    if (existingProxy) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ هذا العضو لديه إنابة مسجلة مسبقاً (حد أقصى إنابة واحدة)</div>`; return; }
+
+    // البحث عن المنيب
+    const { data: pMember } = await db.from('members').select('*').eq('national_id', proxyNationalId).single();
+    if (!pMember) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ رقم هوية المُنيب غير مسجل</div>`; return; }
+
+    // المنيب يجب أن يكون فعالاً ومسدداً
+    const { data: pSub } = await db.from('subscriptions').select('*').eq('member_id', pMember.id).eq('year', currentYear).single();
+    if (!pMember.is_active || !pSub) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ المُنيب غير مؤهل</div>`; return; }
+
+    // المنيب لم يحضر أصالةً ولم يُنَب عنه أحد
+    const { data: pAtt } = await db.from('attendance').select('*').eq('session_id', currentSession.id).eq('member_id', pMember.id).single();
+    if (pAtt) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ المُنيب حضر أصالةً أو تم تسجيل إنابة عنه</div>`; return; }
+
+    const { data: pProxy } = await db.from('attendance').select('*').eq('session_id', currentSession.id).eq('proxy_for_id', pMember.id).single();
+    if (pProxy) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ تم تسجيل إنابة عن هذا العضو مسبقاً</div>`; return; }
+
+    proxyMember = pMember;
+  }
+
+  // تسجيل الحضور
+  const { error } = await db.from('attendance').insert({
+    session_id: currentSession.id,
+    member_id: member.id,
+    attendance_type: attendanceType,
+    proxy_for_id: proxyMember?.id || null,
+    recorded_by: currentUser.id
+  });
+
+  showLoading(false);
+  if (error) { resultEl.innerHTML = `<div class="alert alert-error">خطأ: ${error.message}</div>`; return; }
+
+  resultEl.innerHTML = `<div class="alert alert-success">✅ تم تسجيل حضور ${member.full_name}${proxyMember ? ` نيابةً عن ${proxyMember.full_name}` : ''} بنجاح</div>`;
+  document.getElementById('att-national-id').value = '';
+  document.getElementById('att-proxy-id').value = '';
+  setTimeout(() => renderAttendance(), 1500);
+}
+
+// =============================================
+// CANDIDATES
+// =============================================
+async function renderCandidates() {
+  if (!currentSession) {
+    document.getElementById('page-content').innerHTML = `<div class="alert alert-warning">لا توجد جلسة نشطة</div>`;
+    return;
+  }
+
+  const { data: candidates } = await db.from('candidates')
+    .select('*, member:member_id(full_name, national_id)')
+    .eq('session_id', currentSession.id)
+    .order('display_order');
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">المرشحون (${candidates?.length || 0}) — ${currentSession.title}</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-candidate')">➕ إضافة مرشح</button>
+      </div>
+      ${candidates?.length ? `
+      <table>
+        <thead><tr><th>#</th><th>الاسم</th><th>رقم الهوية</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          ${candidates.map((c, i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>
+                ${c.photo_url ? `<img src="${c.photo_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-left:8px;vertical-align:middle">` : ''}
+                <strong>${c.member?.full_name}</strong>
+              </td>
+              <td dir="ltr">${c.member?.national_id}</td>
+              <td><span class="badge ${c.approved ? 'badge-green' : 'badge-amber'}">${c.approved ? 'معتمد' : 'قيد المراجعة'}</span></td>
+              <td>
+                <button class="btn btn-secondary btn-sm" onclick="toggleCandidateApproval('${c.id}', ${c.approved})">${c.approved ? '❌ إلغاء' : '✅ اعتماد'}</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCandidate('${c.id}')">🗑️</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>` : `<div class="empty-state"><div class="icon">🏆</div><h3>لا يوجد مرشحون بعد</h3></div>`}
+    </div>
+  `;
+}
+
+async function lookupCandidateMember() {
+  const nid = document.getElementById('cand-national-id').value.trim();
+  if (!nid) return;
+  const { data } = await db.from('members').select('*').eq('national_id', nid).single();
+  const info = document.getElementById('cand-member-info');
+  if (data) {
+    info.style.display = 'flex';
+    document.getElementById('cand-member-name-display').textContent = `✅ ${data.full_name}`;
+    info._memberId = data.id;
+  } else {
+    info.style.display = 'flex';
+    info.className = 'alert alert-error';
+    document.getElementById('cand-member-name-display').textContent = '❌ رقم الهوية غير مسجل';
+    info._memberId = null;
+  }
+}
+
+async function saveCandidate() {
+  if (!currentSession) return;
+  const nid = document.getElementById('cand-national-id').value.trim();
+  const info = document.getElementById('cand-member-info');
+
+  const { data: member } = await db.from('members').select('*').eq('national_id', nid).single();
+  if (!member) { toast('رقم الهوية غير موجود', 'error'); return; }
+
+  const { error } = await db.from('candidates').insert({
+    session_id: currentSession.id,
+    member_id: member.id,
+    photo_url: document.getElementById('cand-photo').value || null,
+    bio: document.getElementById('cand-bio').value || null,
+    approved: false
+  });
+
+  if (error) { toast('خطأ: ' + (error.message.includes('unique') ? 'هذا العضو مرشح مسبقاً' : error.message), 'error'); return; }
+  toast('تم إضافة المرشح بنجاح', 'success');
+  closeModal('modal-candidate');
+  renderCandidates();
+}
+
+async function toggleCandidateApproval(id, current) {
+  await db.from('candidates').update({ approved: !current }).eq('id', id);
+  renderCandidates();
+}
+
+async function deleteCandidate(id) {
+  if (!confirm('هل تريد حذف هذا المرشح؟')) return;
+  await db.from('candidates').delete().eq('id', id);
+  renderCandidates();
+}
+
+// =============================================
+// RESULTS
+// =============================================
+async function renderResults() {
+  if (!currentSession) {
+    document.getElementById('page-content').innerHTML = `<div class="alert alert-warning">لا توجد جلسة</div>`;
+    return;
+  }
+
+  showLoading(true);
+  const { data: candidates } = await db.from('candidates')
+    .select('*, member:member_id(full_name, national_id, photo_url)')
+    .eq('session_id', currentSession.id)
+    .eq('approved', true);
+
+  const votesByCandidate = {};
+  for (const c of (candidates || [])) {
+    const { count } = await db.from('votes').select('*', { count: 'exact', head: true }).eq('candidate_id', c.id);
+    votesByCandidate[c.id] = count || 0;
+  }
+
+  const sorted = (candidates || []).sort((a, b) => votesByCandidate[b.id] - votesByCandidate[a.id]);
+  const councilSize = currentSession.council_size;
+  showLoading(false);
+
+  const isOpen = currentSession.status === 'voting';
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="table-wrap" style="padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div class="table-title">📊 نتائج التصويت — ${currentSession.title}</div>
+        ${isOpen ? '<span class="badge badge-green">🔴 التصويت مفتوح - النتائج تتحدث</span>' : '<span class="badge badge-gray">✅ التصويت مغلق</span>'}
+      </div>
+
+      ${sorted.length ? sorted.map((c, i) => {
+        const votes = votesByCandidate[c.id];
+        const isCouncil = i < councilSize;
+        const maxVotes = votesByCandidate[sorted[0]?.id] || 1;
+        const pct = Math.round((votes / maxVotes) * 100);
+        return `
+          <div class="result-row" style="${isCouncil ? 'background:var(--green2);border:1px solid #6EE7D0' : ''}">
+            <div class="result-rank ${isCouncil ? 'council' : 'reserve'}">${i + 1}</div>
+            ${c.member?.photo_url ? `<img src="${c.member.photo_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0">` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👤</div>`}
+            <div style="flex:1">
+              <div class="result-name">${c.member?.full_name}</div>
+              <div style="height:6px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden">
+                <div style="height:100%;background:${isCouncil?'var(--green)':'var(--text3)'};width:${pct}%;border-radius:3px;transition:width .5s"></div>
+              </div>
+            </div>
+            <div>
+              <div class="result-votes">${votes}<span>صوت</span></div>
+              <div style="text-align:center">
+                <span class="badge ${isCouncil ? 'badge-green' : 'badge-amber'}">${isCouncil ? 'عضو مجلس' : `احتياط ${i - councilSize + 1}`}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('') : `<div class="empty-state"><div class="icon">📊</div><h3>لا توجد نتائج بعد</h3></div>`}
+
+      ${isOpen ? `<button class="btn btn-secondary" style="margin-top:16px" onclick="renderResults()">🔄 تحديث النتائج</button>` : ''}
+    </div>
+  `;
+}
+
+// =============================================
+// COMMITTEE USERS
+// =============================================
+async function renderCommittee() {
+  const { data: users } = await db.from('committee_users').select('*').order('created_at');
+  document.getElementById('page-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">مستخدمو لجنة الانتخابات</div>
+        <button class="btn btn-primary btn-sm" onclick="addCommitteeUser()">➕ إضافة مستخدم</button>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          ${users?.map((u, i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${u.full_name}</td>
+              <td dir="ltr">${u.username}</td>
+              <td><span class="badge ${u.role==='president'?'badge-purple':'badge-blue'}">${u.role==='president'?'رئيس اللجنة':'عضو لجنة'}</span></td>
+              <td><span class="badge ${u.is_active?'badge-green':'badge-red'}">${u.is_active?'فعال':'موقوف'}</span></td>
+              <td>
+                ${u.id !== currentUser.id ? `<button class="btn btn-secondary btn-sm" onclick="toggleUserStatus('${u.id}',${u.is_active})">${u.is_active?'إيقاف':'تفعيل'}</button>` : '<span class="badge badge-gray">أنت</span>'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function addCommitteeUser() {
+  const username = prompt('اسم المستخدم:');
+  if (!username) return;
+  const password = prompt('كلمة المرور:');
+  if (!password) return;
+  const name = prompt('الاسم الكامل:');
+  if (!name) return;
+  const role = confirm('هل هو رئيس اللجنة؟') ? 'president' : 'member';
+
+  const { error } = await db.from('committee_users').insert({ username, password_hash: password, full_name: name, role });
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  toast('تم إضافة المستخدم', 'success');
+  renderCommittee();
+}
+
+async function toggleUserStatus(id, current) {
+  await db.from('committee_users').update({ is_active: !current }).eq('id', id);
+  renderCommittee();
+}
+
+// =============================================
+// REPORTS
+// =============================================
+async function renderReports() {
+  document.getElementById('page-content').innerHTML = `
+    <div class="table-wrap" style="padding:24px">
+      <div class="table-title" style="margin-bottom:20px">📄 التقارير والمحاضر</div>
+      <div style="display:grid;gap:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">📋 كشف الحضور الكامل</div>
+            <div style="font-size:13px;color:var(--text3)">جميع الحاضرين أصالةً وبالإنابة</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="printAttendanceReport()">🖨️ طباعة</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">📊 محضر الفرز</div>
+            <div style="font-size:13px;color:var(--text3)">نتائج التصويت مرتبة مع التصنيف</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="printResultsReport()">🖨️ طباعة</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">👥 قائمة الأعضاء الفعالين</div>
+            <div style="font-size:13px;color:var(--text3)">الأعضاء المسددون للسنة الحالية</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="printMembersReport()">🖨️ طباعة</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function printAttendanceReport() {
+  if (!currentSession) { toast('لا توجد جلسة', 'error'); return; }
+  const { data } = await db.from('attendance')
+    .select('*, member:member_id(full_name,national_id), proxy_for:proxy_for_id(full_name,national_id)')
+    .eq('session_id', currentSession.id).order('recorded_at');
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html dir="rtl"><head>
+    <meta charset="UTF-8">
+    <title>كشف الحضور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Cairo', sans-serif; padding: 40px; color: #1A1D23; }
+      h1 { font-size: 22px; text-align: center; margin-bottom: 4px; }
+      h2 { font-size: 16px; text-align: center; color: #666; margin-bottom: 24px; font-weight: 400; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th { background: #f4f5f7; padding: 10px; border: 1px solid #ddd; font-weight: 600; }
+      td { padding: 10px; border: 1px solid #ddd; }
+      .footer { margin-top: 40px; display: flex; justify-content: space-around; }
+      .sig { text-align: center; }
+      .sig-line { width: 150px; border-top: 1px solid #333; margin: 30px auto 6px; }
+    </style>
+    </head><body>
+    <h1>جمعية البر الخيرية بمحافظة السليل</h1>
+    <h2>كشف الحضور — ${currentSession.title} — ${currentSession.session_date}</h2>
+    <table>
+      <thead><tr><th>#</th><th>الاسم</th><th>رقم الهوية</th><th>نوع الحضور</th><th>نيابة عن</th><th>التوقيع</th></tr></thead>
+      <tbody>
+        ${data?.map((a, i) => `
+          <tr>
+            <td>${i+1}</td>
+            <td>${a.member?.full_name}</td>
+            <td dir="ltr">${a.member?.national_id}</td>
+            <td>${a.attendance_type === 'original' ? 'أصالة' : 'بالإنابة'}</td>
+            <td>${a.proxy_for ? a.proxy_for.full_name : '—'}</td>
+            <td></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:16px;font-size:13px;color:#666">
+      إجمالي الحاضرين: ${data?.length || 0} | أصالة: ${data?.filter(a=>a.attendance_type==='original').length||0} | بالإنابة: ${data?.filter(a=>a.attendance_type==='proxy').length||0}
+    </div>
+    <div class="footer">
+      <div class="sig"><div class="sig-line"></div>رئيس لجنة الانتخابات</div>
+      <div class="sig"><div class="sig-line"></div>عضو اللجنة</div>
+      <div class="sig"><div class="sig-line"></div>عضو اللجنة</div>
+    </div>
+    <script>window.print();<\/script>
+    </body></html>
+  `);
+}
+
+async function printResultsReport() {
+  if (!currentSession) { toast('لا توجد جلسة', 'error'); return; }
+  const { data: candidates } = await db.from('candidates')
+    .select('*, member:member_id(full_name, national_id)')
+    .eq('session_id', currentSession.id).eq('approved', true);
+
+  const votesByCandidate = {};
+  for (const c of (candidates || [])) {
+    const { count } = await db.from('votes').select('*', { count: 'exact', head: true }).eq('candidate_id', c.id);
+    votesByCandidate[c.id] = count || 0;
+  }
+  const sorted = (candidates || []).sort((a, b) => votesByCandidate[b.id] - votesByCandidate[a.id]);
+  const councilSize = currentSession.council_size;
+  const totalVotes = Object.values(votesByCandidate).reduce((a, b) => a + b, 0);
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html dir="rtl"><head>
+    <meta charset="UTF-8"><title>محضر الفرز</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Cairo', sans-serif; padding: 40px; }
+      h1 { font-size: 22px; text-align: center; margin-bottom: 4px; }
+      h2 { font-size: 15px; text-align: center; color: #666; margin-bottom: 24px; font-weight: 400; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th { background: #f4f5f7; padding: 10px; border: 1px solid #ddd; font-weight: 600; }
+      td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+      td:nth-child(2) { text-align: right; }
+      .council { background: #E6F5F1; }
+      .footer { margin-top: 40px; display: flex; justify-content: space-around; }
+      .sig { text-align: center; }
+      .sig-line { width: 150px; border-top: 1px solid #333; margin: 30px auto 6px; }
+    </style>
+    </head><body>
+    <h1>جمعية البر الخيرية بمحافظة السليل</h1>
+    <h2>محضر فرز أصوات انتخابات مجلس الإدارة — ${currentSession.title}</h2>
+    <p style="text-align:center;font-size:13px;margin-bottom:16px">التاريخ: ${currentSession.session_date} | حجم المجلس: ${councilSize} أعضاء | إجمالي الأصوات: ${totalVotes}</p>
+    <table>
+      <thead><tr><th>الترتيب</th><th>اسم المرشح</th><th>رقم الهوية</th><th>عدد الأصوات</th><th>النسبة</th><th>التصنيف</th></tr></thead>
+      <tbody>
+        ${sorted.map((c, i) => {
+          const votes = votesByCandidate[c.id];
+          const pct = totalVotes ? Math.round((votes/totalVotes)*100) : 0;
+          const isCouncil = i < councilSize;
+          return `<tr class="${isCouncil ? 'council' : ''}">
+            <td>${i+1}</td>
+            <td>${c.member?.full_name}</td>
+            <td dir="ltr">${c.member?.national_id}</td>
+            <td><strong>${votes}</strong></td>
+            <td>${pct}%</td>
+            <td>${isCouncil ? 'عضو مجلس الإدارة' : `احتياط ${i-councilSize+1}`}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="footer">
+      <div class="sig"><div class="sig-line"></div>رئيس لجنة الانتخابات</div>
+      <div class="sig"><div class="sig-line"></div>عضو اللجنة</div>
+      <div class="sig"><div class="sig-line"></div>عضو اللجنة</div>
+    </div>
+    <script>window.print();<\/script>
+    </body></html>
+  `);
+}
+
+async function printMembersReport() {
+  const currentYear = new Date().getFullYear();
+  const { data } = await db.from('members').select('*, subscriptions(year)').eq('is_active', true).order('full_name');
+  const active = data?.filter(m => m.subscriptions?.some(s => s.year === currentYear));
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html dir="rtl"><head>
+    <meta charset="UTF-8"><title>الأعضاء الفعالون</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Cairo', sans-serif; padding: 40px; }
+      h1 { font-size: 20px; text-align: center; margin-bottom: 20px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th { background: #f4f5f7; padding: 8px; border: 1px solid #ddd; }
+      td { padding: 8px; border: 1px solid #ddd; }
+    </style>
+    </head><body>
+    <h1>قائمة الأعضاء الفعالين المسددين ${currentYear}</h1>
+    <table>
+      <thead><tr><th>#</th><th>الاسم</th><th>رقم الهوية</th><th>الجوال</th><th>تاريخ الانضمام</th></tr></thead>
+      <tbody>
+        ${active?.map((m, i) => `<tr><td>${i+1}</td><td>${m.full_name}</td><td dir="ltr">${m.national_id}</td><td dir="ltr">${m.phone||'—'}</td><td>${m.join_date||'—'}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <p style="margin-top:12px;font-size:13px">الإجمالي: ${active?.length || 0} عضو</p>
+    <script>window.print();<\/script>
+    </body></html>
+  `);
+}
+
+// =============================================
+// VOTING SCREEN (للأعضاء)
+// =============================================
+async function initVotingScreen() {
+  const params = new URLSearchParams(location.search);
+  if (!params.get('vote')) return;
+
+  const sessionId = params.get('session');
+  const { data: session } = await db.from('election_sessions').select('*').eq('id', sessionId).single();
+
+  if (!session || session.status !== 'voting') {
+    showScreen('screen-vote');
+    document.getElementById('vote-session-title').textContent = session?.title || '';
+    document.getElementById('vote-card-content').innerHTML = `
+      <div style="padding:40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">🔒</div>
+        <h2 style="font-size:18px;margin-bottom:8px">${session?.status === 'closed' ? 'انتهى التصويت' : 'التصويت غير متاح حالياً'}</h2>
+        <p style="color:var(--text3)">${session?.status === 'closed' ? 'تم إغلاق جلسة التصويت' : 'يرجى الانتظار حتى يفتح رئيس اللجنة التصويت'}</p>
+        ${session?.status === 'closed' ? `<button class="btn btn-primary" style="margin-top:16px" onclick="showVotingResults('${sessionId}')">📊 عرض النتائج</button>` : ''}
+      </div>`;
+    return;
+  }
+
+  currentSession = session;
+  showScreen('screen-vote');
+  document.getElementById('vote-session-title').textContent = session.title;
+  showVoteStep1();
+}
+
+function showVoteStep1() {
+  document.getElementById('vote-card-content').innerHTML = `
+    <div class="vote-card-head">
+      <div class="vote-step-num">١</div>
+      <div>
+        <div style="font-weight:700">أدخل رقم هويتك الوطنية</div>
+        <div style="font-size:12px;color:var(--text3)">للتحقق من أهليتك للتصويت</div>
+      </div>
+    </div>
+    <div class="vote-card-body">
+      <div id="vote-step1-result"></div>
+      <div class="form-group">
+        <label>رقم الهوية الوطنية</label>
+        <input type="text" id="voter-nid" placeholder="أدخل رقم هويتك" dir="ltr" maxlength="10" style="font-size:18px;letter-spacing:.1em;text-align:center">
+      </div>
+      <button class="btn btn-primary" onclick="checkVoterEligibility()">التحقق من الأهلية →</button>
+    </div>
+  `;
+  document.getElementById('voter-nid').addEventListener('keyup', e => { if (e.key === 'Enter') checkVoterEligibility(); });
+}
+
+let currentVoter = null;
+
+async function checkVoterEligibility() {
+  const nid = document.getElementById('voter-nid').value.trim();
+  const resultEl = document.getElementById('vote-step1-result');
+  if (!nid) return;
+
+  showLoading(true);
+  const { data: member } = await db.from('members').select('*').eq('national_id', nid).single();
+
+  if (!member) { showLoading(false); resultEl.innerHTML = `<div class="alert alert-error">❌ رقم الهوية غير مسجل</div>`; return; }
+
+  const currentYear = new Date().getFullYear();
+  const { data: sub } = await db.from('subscriptions').select('*').eq('member_id', member.id).eq('year', currentYear).single();
+
+  if (!member.is_active || !sub) {
+    showLoading(false);
+    resultEl.innerHTML = `<div class="alert alert-error">❌ أنت غير مؤهل للتصويت (يجب أن تكون عضواً فعالاً ومسدداً لاشتراك ${currentYear})</div>`;
+    return;
+  }
+
+  // هل سجّل حضوره؟
+  const { data: att } = await db.from('attendance').select('*').eq('session_id', currentSession.id).eq('member_id', member.id).single();
+  if (!att) {
+    showLoading(false);
+    resultEl.innerHTML = `<div class="alert alert-error">❌ لم يتم تسجيل حضورك في هذه الجلسة</div>`;
+    return;
+  }
+
+  showLoading(false);
+  currentVoter = { member, attendance: att };
+  showVoteStep2();
+}
+
+async function showVoteStep2() {
+  const { data: candidates } = await db.from('candidates')
+    .select('*, member:member_id(full_name, national_id)')
+    .eq('session_id', currentSession.id)
+    .eq('approved', true)
+    .order('display_order');
+
+  const { data: votingLog } = await db.from('voting_log').select('*').eq('session_id', currentSession.id).eq('voter_member_id', currentVoter.member.id).single();
+
+  if (votingLog?.voted_for_self) {
+    // هل معه إنابة لم يصوت عنها؟
+    if (currentVoter.attendance.attendance_type === 'proxy' && !votingLog.voted_for_proxy) {
+      showVoteStep3(candidates, votingLog);
+      return;
+    }
+    document.getElementById('vote-card-content').innerHTML = `
+      <div style="padding:40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">✅</div>
+        <h2 style="font-size:18px;margin-bottom:8px">تم تسجيل صوتك</h2>
+        <p style="color:var(--text3)">شكراً ${currentVoter.member.full_name}، تم تسجيل صوتك بنجاح</p>
+      </div>`;
+    return;
+  }
+
+  const maxSelect = currentSession.council_size;
+  document.getElementById('vote-card-content').innerHTML = `
+    <div class="vote-card-head">
+      <div class="vote-step-num">٢</div>
+      <div>
+        <div style="font-weight:700">مرحباً ${currentVoter.member.full_name}</div>
+        <div style="font-size:12px;color:var(--text3)">اختر حتى ${maxSelect} مرشحين</div>
+      </div>
+    </div>
+    <div class="vote-card-body">
+      <div class="alert alert-info" style="margin-bottom:16px">
+        اختر من <strong>${maxSelect}</strong> مرشح بحد أقصى — الاختيار نهائي ولا يمكن التراجع
+      </div>
+      <div class="candidate-grid" id="candidates-grid">
+        ${candidates?.map(c => `
+          <div class="candidate-card" id="cc-${c.id}" onclick="toggleCandidateSelect('${c.id}', ${maxSelect})">
+            <div class="candidate-photo">${c.member?.photo_url ? `<img src="${c.member.photo_url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">` : '👤'}</div>
+            <div class="candidate-name">${c.member?.full_name}</div>
+            <div class="candidate-id">${c.member?.national_id}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div id="vote-count-display" style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:16px">لم تختر بعد</div>
+      <button class="btn btn-primary" onclick="submitVotes()">✅ تأكيد التصويت</button>
+    </div>
+  `;
+}
+
+let selectedCandidates = new Set();
+
+function toggleCandidateSelect(id, max) {
+  if (selectedCandidates.has(id)) {
+    selectedCandidates.delete(id);
+    document.getElementById(`cc-${id}`).classList.remove('selected');
+  } else {
+    if (selectedCandidates.size >= max) { toast(`الحد الأقصى ${max} مرشحين`, 'error'); return; }
+    selectedCandidates.add(id);
+    document.getElementById(`cc-${id}`).classList.add('selected');
+  }
+  const count = selectedCandidates.size;
+  document.getElementById('vote-count-display').textContent = count ? `اخترت ${count} من ${max}` : 'لم تختر بعد';
+}
+
+async function submitVotes() {
+  if (selectedCandidates.size === 0) { toast('لم تختر أي مرشح', 'error'); return; }
+  if (!confirm('هل تؤكد اختيارك؟ لا يمكن التراجع بعد التأكيد')) return;
+
+  showLoading(true);
+  const votesToInsert = Array.from(selectedCandidates).map(cid => ({
+    session_id: currentSession.id,
+    voter_member_id: currentVoter.member.id,
+    on_behalf_of_id: null,
+    candidate_id: cid,
+    is_manual: false
+  }));
+
+  await db.from('votes').insert(votesToInsert);
+  await db.from('voting_log').upsert({
+    session_id: currentSession.id,
+    voter_member_id: currentVoter.member.id,
+    voted_for_self: true,
+    voted_for_proxy: false
+  }, { onConflict: 'session_id,voter_member_id' });
+
+  showLoading(false);
+  selectedCandidates.clear();
+
+  // هل معه إنابة؟
+  if (currentVoter.attendance.attendance_type === 'proxy' && currentVoter.attendance.proxy_for_id) {
+    const { data: proxyCandidates } = await db.from('candidates')
+      .select('*, member:member_id(full_name, national_id)')
+      .eq('session_id', currentSession.id).eq('approved', true);
+    showVoteStep3(proxyCandidates, null);
+  } else {
+    document.getElementById('vote-card-content').innerHTML = `
+      <div style="padding:40px;text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">✅</div>
+        <h2>تم تسجيل صوتك بنجاح</h2>
+        <p style="color:var(--text3);margin-top:8px">شكراً على مشاركتك ${currentVoter.member.full_name}</p>
+      </div>`;
+  }
+}
+
+async function showVoteStep3(candidates, log) {
+  const { data: proxyMember } = await db.from('members').select('*').eq('id', currentVoter.attendance.proxy_for_id).single();
+  const maxSelect = currentSession.council_size;
+
+  document.getElementById('vote-card-content').innerHTML = `
+    <div class="vote-card-head">
+      <div class="vote-step-num">٣</div>
+      <div>
+        <div style="font-weight:700">التصويت نيابةً عن ${proxyMember?.full_name}</div>
+        <div style="font-size:12px;color:var(--text3)">اختر حتى ${maxSelect} مرشحين</div>
+      </div>
+    </div>
+    <div class="vote-card-body">
+      <div class="alert alert-warning">أنت تصوت الآن <strong>نيابةً عن ${proxyMember?.full_name}</strong> — الاختيار مستقل تماماً</div>
+      <div class="candidate-grid" id="proxy-candidates-grid">
+        ${candidates?.map(c => `
+          <div class="candidate-card" id="pc-${c.id}" onclick="toggleProxyCandidateSelect('${c.id}', ${maxSelect})">
+            <div class="candidate-photo">${c.member?.photo_url ? `<img src="${c.member.photo_url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover">` : '👤'}</div>
+            <div class="candidate-name">${c.member?.full_name}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div id="proxy-vote-count" style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:16px">لم تختر بعد</div>
+      <button class="btn btn-primary" onclick="submitProxyVotes('${proxyMember?.id}')">✅ تأكيد التصويت عن ${proxyMember?.full_name}</button>
+    </div>
+  `;
+}
+
+let selectedProxyCandidates = new Set();
+
+function toggleProxyCandidateSelect(id, max) {
+  if (selectedProxyCandidates.has(id)) {
+    selectedProxyCandidates.delete(id);
+    document.getElementById(`pc-${id}`).classList.remove('selected');
+  } else {
+    if (selectedProxyCandidates.size >= max) { toast(`الحد الأقصى ${max} مرشحين`, 'error'); return; }
+    selectedProxyCandidates.add(id);
+    document.getElementById(`pc-${id}`).classList.add('selected');
+  }
+  const count = selectedProxyCandidates.size;
+  document.getElementById('proxy-vote-count').textContent = count ? `اخترت ${count} من ${max}` : 'لم تختر بعد';
+}
+
+async function submitProxyVotes(proxyMemberId) {
+  if (selectedProxyCandidates.size === 0) { toast('لم تختر أي مرشح', 'error'); return; }
+  if (!confirm('هل تؤكد التصويت نيابةً؟ لا يمكن التراجع')) return;
+
+  showLoading(true);
+  const votesToInsert = Array.from(selectedProxyCandidates).map(cid => ({
+    session_id: currentSession.id,
+    voter_member_id: currentVoter.member.id,
+    on_behalf_of_id: proxyMemberId,
+    candidate_id: cid,
+    is_manual: false
+  }));
+
+  await db.from('votes').insert(votesToInsert);
+  await db.from('voting_log').update({ voted_for_proxy: true }).eq('session_id', currentSession.id).eq('voter_member_id', currentVoter.member.id);
+
+  showLoading(false);
+  selectedProxyCandidates.clear();
+  document.getElementById('vote-card-content').innerHTML = `
+    <div style="padding:40px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🎉</div>
+      <h2>اكتمل التصويت بنجاح</h2>
+      <p style="color:var(--text3);margin-top:8px">تم تسجيل صوتك وصوت من أنبت عنه بنجاح</p>
+    </div>`;
+}
+
+// =============================================
+// MANUAL VOTES
+// =============================================
+async function loadManualVoteCandidates() {
+  if (!currentSession) return;
+  const { data: candidates } = await db.from('candidates')
+    .select('*, member:member_id(full_name)')
+    .eq('session_id', currentSession.id).eq('approved', true);
+
+  const list = document.getElementById('mv-candidates-list');
+  list.innerHTML = candidates?.map(c => `
+    <label style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:6px;cursor:pointer">
+      <input type="checkbox" value="${c.id}" name="mv-cand">
+      <span>${c.member?.full_name}</span>
+    </label>
+  `).join('') || '';
+}
+
+async function lookupManualVoter() {
+  const nid = document.getElementById('mv-voter-id').value.trim();
+  if (!nid) return;
+  const { data } = await db.from('members').select('*').eq('national_id', nid).single();
+  const info = document.getElementById('mv-voter-info');
+  if (data) {
+    info.style.display = 'flex';
+    document.getElementById('mv-voter-name').textContent = `✅ ${data.full_name}`;
+    info._memberId = data.id;
+  }
+}
+
+async function saveManualVotes() {
+  const voterInfo = document.getElementById('mv-voter-info');
+  const memberId = voterInfo._memberId;
+  if (!memberId) { toast('ابحث عن الناخب أولاً', 'error'); return; }
+
+  const selected = Array.from(document.querySelectorAll('input[name="mv-cand"]:checked')).map(i => i.value);
+  if (!selected.length) { toast('اختر مرشحاً واحداً على الأقل', 'error'); return; }
+
+  const maxSelect = currentSession.council_size;
+  if (selected.length > maxSelect) { toast(`الحد الأقصى ${maxSelect}`, 'error'); return; }
+
+  showLoading(true);
+  const votes = selected.map(cid => ({
+    session_id: currentSession.id,
+    voter_member_id: memberId,
+    candidate_id: cid,
+    is_manual: true,
+    added_by: currentUser.id
+  }));
+
+  const { error } = await db.from('votes').insert(votes);
+  showLoading(false);
+
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  toast('تم تسجيل الأصوات اليدوية', 'success');
+  closeModal('modal-manual-vote');
+}
+
+// =============================================
+// IMPORT CSV/EXCEL STUB
+// =============================================
+function importMembersCSV() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv,.xlsx,.xls';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    toast('جاري معالجة الملف... هذه الميزة تحتاج مكتبة SheetJS — سيتم إضافتها قريباً', 'info');
+  };
+  input.click();
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showLoading(show) { document.getElementById('loading').classList.toggle('show', show); }
+
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  el.onclick = () => el.remove();
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(() => toast('تم نسخ الرابط', 'success'));
+}
+
+// Check URL params for voting screen
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  if (params.get('vote')) initVotingScreen();
+});
+
+// Handle Enter key in login
+document.addEventListener('keyup', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('screen-login').classList.contains('active')) doLogin();
+  }
+});
+
+// Responsive
+window.addEventListener('resize', () => {
+  const menuBtn = document.getElementById('menu-btn');
+  if (menuBtn) menuBtn.style.display = window.innerWidth < 768 ? 'flex' : 'none';
+});
+if (window.innerWidth < 768) {
+  const menuBtn = document.getElementById('menu-btn');
+  if (menuBtn) menuBtn.style.display = 'flex';
+}
+</script>
+</body>
+</html>
